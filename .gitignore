@@ -1,0 +1,32 @@
+
+# Node modules for all projects
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+**/dist/
+.next/
+**/.next/
+out-tsc/
+**/out-tsc/
+
+# Logs
+*.log
+**/npm-debug.log*
+
+# Environment files
+.env
+**/.env
+
+# webpack cache
+.cache/
+**/.cache/
+
+# Angular cache
+.angular/
+**/.angular/
+
+# OS files
+.DS_Store
+Thumbs.db
