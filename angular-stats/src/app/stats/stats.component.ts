@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -20,15 +20,29 @@ import { CommonModule } from '@angular/common';
         Todos
       </div>
       <div style="color: #22a06b; margin-bottom: 4px;">
-        ✓ Done: {{ done }}
+        ✓ Done: {{ done() }}
       </div>
       <div style="color: #e2812c;">
-        ○ Pending: {{ pending }}
+        ○ Pending: {{ pending() }}
       </div>
     </div>
   `,
 })
-export class StatsComponent {
-  @Input() done: number = 0;
-  @Input() pending: number = 0;
+export class StatsComponent implements OnInit, OnDestroy {
+  done = signal(0);
+  pending = signal(0);
+
+  private handler = (e: Event) => {
+    const todos = (e as CustomEvent).detail || [];
+    this.done.set(todos.filter((t: any) => t.completed).length);
+    this.pending.set(todos.filter((t: any) => !t.completed).length);
+  };
+
+  ngOnInit() {
+    window.addEventListener('todos-updated', this.handler);
+  }
+
+  ngOnDestroy() {
+    window.removeEventListener('todos-updated', this.handler);
+  }
 }

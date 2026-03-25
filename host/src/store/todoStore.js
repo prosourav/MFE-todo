@@ -27,9 +27,18 @@ export const todoStore = {
     return () => { listeners = listeners.filter(l => l !== fn); };
   },
 
+  // Listen to events fired by remotes
+  init() {
+    window.addEventListener('todo-toggle', (e) => {
+      this.toggle(e.detail);
+    });
+    window.addEventListener('todo-delete', (e) => {
+      this.delete(e.detail);
+    });
+  },
+
   _notify() {
     listeners.forEach(fn => fn(todos));
-    // fire DOM event so Angular can also listen
     window.dispatchEvent(
       new CustomEvent('todos-updated', { detail: todos })
     );
