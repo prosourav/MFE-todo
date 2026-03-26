@@ -1,0 +1,20 @@
+<div class="overlay" (click)="close.emit()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h3>Todo Statistics</h3>
+
+    <p>Done: {{ done }}</p>
+    <p>Pending: {{ pending }}</p>
+
+    <!-- Progress Bar -->
+    <div class="progress">
+      <div
+        class="progress-fill"
+        [style.width.%]="progress"
+      ></div>
+    </div>
+
+    <p>{{ progress }}% completed</p>
+
+    <button (click)="close.emit()">Close</button>
+  </div>
+</div>

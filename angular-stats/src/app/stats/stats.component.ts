@@ -1,46 +1,21 @@
 import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { openModal } from 'src/utils/modal';
+import { StatsModalComponent } from '../stats-modal/stats-modal';
+
 
 @Component({
   selector: 'app-stats',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, StatsModalComponent],
   styleUrl:'./stats.css',
-  template: `
-    <div style="
-      background: white; border: 1px solid #eee; border-radius: 10px;
-      padding: 10px 16px; font-size: 13px; font-family: sans-serif;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1); min-width: 130px;
-    ">
-      @if (visible()) {
-        <div style="font-weight: 600; margin-bottom: 6px; color: #444;">Todos</div>
-        <div style="color: #22a06b; margin-bottom: 4px;">✓ Done: {{ done() }}</div>
-        <div style="color: #e2812c; margin-bottom: 10px;">○ Pending: {{ pending() }}</div>
-      } @else {
-        <div style="color: #aaa; margin-bottom: 10px; font-size: 12px;">Stats hidden</div>
-      }
-
-        <label class="switch">
-            <input
-              type="checkbox"
-              [checked]="visible()"
-              (change)="toggleVisibility()"
-            />
-            <span class="slider"></span>
-        </label>
-
-      <span style="margin-left: 8px; font-size: 12px; color: #444;">
-        {{ visible() ? 'Hide stats' : 'Show stats' }}
-      </span>
-
-    </div>
-  `,
+  templateUrl: './stats.html'
 })
 export class StatsComponent implements OnInit, OnDestroy {
   done = signal(0);
   pending = signal(0);
   visible = signal(true);
+  showStatsModal = signal(false);
 
   private handler = (e: Event) => {
     const todos = (e as CustomEvent).detail || [];
@@ -75,4 +50,19 @@ export class StatsComponent implements OnInit, OnDestroy {
       this.visible.set(true);
     }
   }
+
+  openStatsModal() {
+  if (!this.visible()) return; // optional
+  this.showStatsModal.set(true);
+}
+
+closeStatsModal() {
+  this.showStatsModal.set(false);
+}
+
+progress = () => {
+  const total = this.done() + this.pending();
+  return total === 0 ? 0 : Math.round((this.done() / total) * 100);
+};
+
 }

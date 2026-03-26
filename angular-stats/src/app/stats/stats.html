@@ -1,1 +1,43 @@
-<p>stats works!</p>
+<div class="card" (click)="openStatsModal()">
+  @if (visible()) {
+    <div style="font-weight: 600; margin-bottom: 6px; color: #444;">
+      Todos
+    </div>
+
+    <div style="color: #22a06b; margin-bottom: 4px;">
+      ✓ Done: {{ done() }}
+    </div>
+
+    <div style="color: #e2812c; margin-bottom: 10px;">
+      ○ Pending: {{ pending() }}
+    </div>
+  } @else {
+    <div style="color: #aaa; margin-bottom: 10px; font-size: 12px;">
+      Stats hidden
+    </div>
+  }
+
+  <!-- Toggle Switch -->
+  <label class="switch" (click)="$event.stopPropagation()">
+    <input
+      type="checkbox"
+      [checked]="visible()"
+      (change)="toggleVisibility()"
+    />
+    <span class="slider"></span>
+  </label>
+
+  <span style="margin-left: 8px; font-size: 12px; color: #444;">
+    {{ visible() ? 'Hide stats' : 'Show stats' }}
+  </span>
+</div>
+
+<!-- Modal -->
+@if (showStatsModal()) {
+  <app-stats-modal
+    [done]="done()"
+    [pending]="pending()"
+    [progress]="progress()"
+    (close)="closeStatsModal()"
+  />
+}
