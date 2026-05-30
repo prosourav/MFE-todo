@@ -92,7 +92,7 @@ jobs:
   deploy-angular-stats:
     name: Deploy Angular Remote
     runs-on: ubuntu-latest
-    needs: deploy-modal-wc  # modal must deploy first
+    needs: deploy-modal-wc
     steps:
       - uses: actions/checkout@v4
 
@@ -115,6 +115,22 @@ jobs:
         working-directory: angular-stats
         run: npx ng build --configuration production
 
+      - name: Check build output
+        working-directory: angular-stats
+        run: ls -la dist/
+
+      - name: Upload to S3
+        working-directory: angular-stats
+        run: |
+          if [ -d "dist/angular-stats/browser" ]; then
+            aws s3 sync dist/angular-stats/browser/ s3://${{ secrets.S3_ANGULAR_STATS }} --delete
+          elif [ -d "dist/angular-stats" ]; then
+            aws s3 sync dist/angular-stats/ s3://${{ secrets.S3_ANGULAR_STATS }} --delete
+          else
+            ls dist/
+            exit 1
+          fi
+
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -122,16 +138,11 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Upload to S3
-        working-directory: angular-stats
-        run: aws s3 sync dist/angular-stats/browser/ s3://${{ secrets.S3_ANGULAR_STATS }} --delete
-
       - name: Invalidate CloudFront
         run: |
           aws cloudfront create-invalidation \
             --distribution-id ${{ secrets.CF_ANGULAR_STATS }} \
             --paths "/*"
-
   # ─────────────────────────────────────────
   deploy-host:
     name: Deploy Host
