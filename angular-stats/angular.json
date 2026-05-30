@@ -14,7 +14,7 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "ngx-build-plus:browser",
+          "builder": "@angular-devkit/build-angular:browser",
           "options": {
             "tsConfig": "tsconfig.app.json",
             "assets": [
@@ -24,11 +24,15 @@
                 "output": "."
               }
             ],
-            "styles": ["src/styles.css"],
+            "styles": [
+              "src/styles.css"
+            ],
             "main": "src/main.ts",
             "outputPath": "dist/angular-stats",
             "index": "src/index.html",
-            "extraWebpackConfig": "webpack.config.js",
+            "polyfills": [
+              "zone.js"
+            ],
             "commonChunk": false
           },
           "configurations": {
@@ -45,8 +49,7 @@
                   "maximumError": "8kB"
                 }
               ],
-              "outputHashing": "all",
-              "extraWebpackConfig": "webpack.prod.config.js"
+              "outputHashing": "all"
             },
             "development": {
               "optimization": false,
@@ -57,26 +60,26 @@
           "defaultConfiguration": "production"
         },
         "serve": {
-  "builder": "ngx-build-plus:dev-server",
-  "options": {
-    "port": 4201,
-    "publicHost": "http://localhost:4201",
-    "extraWebpackConfig": "webpack.config.js",
-    "headers": {
-      "Access-Control-Allow-Origin": "*"
-    }
-  },
-  "configurations": {
-    "development": {
-      "buildTarget": "angular-stats:build:development",
-      "extraWebpackConfig": "webpack.config.js"
-    },
-    "production": {
-      "buildTarget": "angular-stats:build:production"
-    }
-  },
-  "defaultConfiguration": "development"
-},
+          "builder": "ngx-build-plus:dev-server",
+          "options": {
+            "port": 4201,
+            "publicHost": "http://localhost:4201",
+            "extraWebpackConfig": "webpack.config.js",
+            "headers": {
+              "Access-Control-Allow-Origin": "*"
+            }
+          },
+          "configurations": {
+            "development": {
+              "buildTarget": "angular-stats:build:development",
+              "extraWebpackConfig": "webpack.config.js"
+            },
+            "production": {
+              "buildTarget": "angular-stats:build:production"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
         "test": {
           "builder": "@angular/build:unit-test"
         }

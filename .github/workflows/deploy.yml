@@ -121,15 +121,7 @@ jobs:
 
       - name: Upload to S3
         working-directory: angular-stats
-        run: |
-          if [ -d "dist/angular-stats/browser" ]; then
-            aws s3 sync dist/angular-stats/browser/ s3://${{ secrets.S3_ANGULAR_STATS }} --delete
-          elif [ -d "dist/angular-stats" ]; then
-            aws s3 sync dist/angular-stats/ s3://${{ secrets.S3_ANGULAR_STATS }} --delete
-          else
-            ls dist/
-            exit 1
-          fi
+        run: aws s3 sync dist/angular-stats/ s3://${{ secrets.S3_ANGULAR_STATS }} --delete
 
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v4
