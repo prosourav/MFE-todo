@@ -1,0 +1,178 @@
+name: Deploy MFE Apps
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  # ─────────────────────────────────────────
+  deploy-modal-wc:
+    name: Deploy Modal WC
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: modal-wc/package-lock.json
+
+      - name: Install dependencies
+        working-directory: modal-wc
+        run: npm install
+
+      - name: Build
+        working-directory: modal-wc
+        run: npx webpack --mode production --output-path dist
+
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Upload to S3
+        working-directory: modal-wc
+        run: aws s3 sync dist/ s3://${{ secrets.S3_MODAL_WC }} --delete
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CF_MODAL_WC }} \
+            --paths "/*"
+
+  # ─────────────────────────────────────────
+  deploy-todo-react:
+    name: Deploy React Remote
+    runs-on: ubuntu-latest
+    needs: deploy-modal-wc  # modal must deploy first
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: todo-react/package-lock.json
+
+      - name: Install dependencies
+        working-directory: todo-react
+        run: npm install
+
+      - name: Update Modal URL
+        working-directory: todo-react
+        run: |
+          sed -i "s|http://localhost:6000|${{ secrets.MODAL_CF_URL }}|g" webpack.config.js
+
+      - name: Build
+        working-directory: todo-react
+        run: npx webpack --mode production --output-path dist
+
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Upload to S3
+        working-directory: todo-react
+        run: aws s3 sync dist/ s3://${{ secrets.S3_TODO_REACT }} --delete
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CF_TODO_REACT }} \
+            --paths "/*"
+
+  # ─────────────────────────────────────────
+  deploy-angular-stats:
+    name: Deploy Angular Remote
+    runs-on: ubuntu-latest
+    needs: deploy-modal-wc  # modal must deploy first
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: angular-stats/package-lock.json
+
+      - name: Install dependencies
+        working-directory: angular-stats
+        run: npm install
+
+      - name: Update Modal URL
+        working-directory: angular-stats
+        run: |
+          sed -i "s|http://localhost:6000|${{ secrets.MODAL_CF_URL }}|g" src/utils/modal.ts
+
+      - name: Build
+        working-directory: angular-stats
+        run: npx ng build --configuration production
+
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Upload to S3
+        working-directory: angular-stats
+        run: aws s3 sync dist/angular-stats/browser/ s3://${{ secrets.S3_ANGULAR_STATS }} --delete
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CF_ANGULAR_STATS }} \
+            --paths "/*"
+
+  # ─────────────────────────────────────────
+  deploy-host:
+    name: Deploy Host
+    runs-on: ubuntu-latest
+    needs: [deploy-todo-react, deploy-angular-stats]  # remotes must deploy first
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: host/package-lock.json
+
+      - name: Install dependencies
+        working-directory: host
+        run: npm install
+
+      - name: Update Remote URLs
+        working-directory: host
+        run: |
+          sed -i "s|http://localhost:3000|${{ secrets.REACT_CF_URL }}|g" webpack.config.js
+          sed -i "s|http://localhost:4201|${{ secrets.ANGULAR_CF_URL }}|g" src/components/StatsWidget.jsx
+
+      - name: Build
+        working-directory: host
+        run: npx webpack --mode production --output-path dist
+
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Upload to S3
+        working-directory: host
+        run: aws s3 sync dist/ s3://${{ secrets.S3_HOST }} --delete
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CF_HOST }} \
+            --paths "/*"
