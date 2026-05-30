@@ -65,7 +65,7 @@ jobs:
       - name: Update Modal URL
         working-directory: todo-react
         run: |
-          sed -i "s|http://localhost:6000|${{ secrets.MODAL_CF_URL }}|g" webpack.config.js
+          sed -i "s|http://localhost:4000|${{ secrets.MODAL_CF_URL }}|g" webpack.config.js
 
       - name: Build
         working-directory: todo-react
@@ -109,13 +109,19 @@ jobs:
       - name: Update Modal URL
         working-directory: angular-stats
         run: |
-          sed -i "s|http://localhost:6000|${{ secrets.MODAL_CF_URL }}|g" src/utils/modal.ts
+          sed -i "s|http://localhost:4000|${{ secrets.MODAL_CF_URL }}|g" src/utils/modal.ts
 
       - name: Build
         working-directory: angular-stats
-        run: npx ng build --configuration production
+        run: npm run build:prod
 
-      - name: Configure AWS       ← moved BEFORE upload
+      - name: Check build output
+        working-directory: angular-stats
+        run: |
+          ls -la dist/angular-stats/
+          ls dist/angular-stats/remoteEntry.js && echo "✅ remoteEntry.js exists" || echo "❌ MISSING"
+
+      - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
