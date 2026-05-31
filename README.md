@@ -4,9 +4,10 @@ Microfrontend Todo Application using Module Federation.
 
 ## Architecture
 ```
-React Host        (port 9000)
-├── Angular 19    (port 4201) → Stats widget
-└── React remote  (port 3000) → Todo list
+React Host          (port 9000)
+├── React remote    (port 3000) → Todo list
+├── Angular remote  (port 4201) → Stats widget
+└── Modal webcomponent  remote  (port 6000) → Shared confirm modal
 ```
 
 ## Running locally
@@ -185,58 +186,6 @@ GitHub Actions → uploads to S3 → invalidates CloudFront cache → next reque
 6. All components mount in the host's browser tab
 7. All remotes share the same window object → event bus works
 ```
-
----
-
-## Project Structure
-
-```
-MFE-todo/
-├── .github/
-│   └── workflows/
-│       └── deploy.yml          ← CI/CD pipeline
-├── host/
-│   ├── src/
-│   │   ├── index.js            ← async boundary
-│   │   ├── bootstrap.jsx       ← React root mount
-│   │   ├── App.jsx             ← main layout
-│   │   ├── store/
-│   │   │   └── todoStore.js    ← shared state + event bus
-│   │   └── components/
-│   │       ├── TodoInput.jsx   ← input box + Add button
-│   │       ├── TodoListWrapper.jsx  ← loads React remote
-│   │       └── StatsWidget.jsx      ← loads Angular remote
-│   ├── public/
-│   │   └── index.html
-│   └── webpack.config.js
-├── todo-react/
-│   ├── src/
-│   │   ├── index.js
-│   │   ├── bootstrap.jsx
-│   │   └── components/
-│   │       ├── TodoList.jsx    ← exposed via MF
-│   │       └── TodoItem.jsx
-│   └── webpack.config.js
-├── angular-stats/
-│   ├── src/
-│   │   ├── main.ts
-│   │   ├── app/
-│   │   │   └── stats/
-│   │   │       ├── stats.component.ts   ← Angular signals + event bus
-│   │   │       └── stats.entry.ts       ← Angular Elements bootstrap
-│   │   └── utils/
-│   │       └── modal.ts        ← loads Modal WC remote
-│   ├── webpack.config.js
-│   └── angular.json
-└── modal-wc/
-    ├── src/
-    │   ├── index.js
-    │   └── components/
-    │       └── confirm-modal.js  ← Web Component with Shadow DOM
-    └── webpack.config.js
-```
-
----
 
 ## Running Locally
 
@@ -539,3 +488,8 @@ npx webpack serve
 ```
 
 Open http://localhost:9000
+
+## Cloud Architecture
+
+<img width="742" height="730" alt="Image" src="https://github.com/user-attachments/assets/511e723b-b59f-4709-bb57-ca396dbeee4f" />
+
