@@ -14,7 +14,7 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:browser",
+          "builder": "ngx-build-plus:browser",
           "options": {
             "tsConfig": "tsconfig.app.json",
             "assets": [
@@ -30,9 +30,7 @@
             "main": "src/main.ts",
             "outputPath": "dist/angular-stats",
             "index": "src/index.html",
-            "polyfills": [
-              "zone.js"
-            ],
+            "extraWebpackConfig": "webpack.config.js",
             "commonChunk": false
           },
           "configurations": {
@@ -49,7 +47,8 @@
                   "maximumError": "8kB"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "extraWebpackConfig": "webpack.prod.config.js"
             },
             "development": {
               "optimization": false,
@@ -83,7 +82,7 @@
         "test": {
           "builder": "@angular/build:unit-test"
         }
-      }
+      } 
     }
   }
 }
