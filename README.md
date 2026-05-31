@@ -488,6 +488,7 @@ npx webpack serve
 ```
 
 Open http://localhost:9000
+live: https://d3hbaia43enpqz.cloudfront.net/
 
 ## Cloud Architecture
 
